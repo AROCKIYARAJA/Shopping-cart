@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart Products</title>
+    <style>
+      #total {
+        background: #000;
+        color: white;
+        padding: 10px;
+        margin: 10px 0px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="total">Grand Total $ : 0</div>
+
+    <div class="cart-container" id="cart-container"></div>
+
+    <script>
+      let container = document.getElementById("cart-container");
+      let all_total = document.getElementById("total");
+      let Basket = JSON.parse(localStorage.getItem("cart_products")) || [];
+
+      function all_products_grand_price() {
+        let all_price_calc = Basket.map((target) => target.totalprice);
+        let grandTotal = all_price_calc.reduce((a, b) => a + b, 0).toFixed(2);
+        all_total.innerHTML = `Grand Total $ : ${grandTotal}`;
+      }
+      all_products_grand_price();
+      for (i = 0; i < Basket.length; i++) {
+        let basket_product = document.createElement("div");
+        basket_product.innerHTML = `
+            <div>${Basket[i].title}</div>
+            <p id='product_price_${Basket[i].id}'>Price $ ${Basket[i].totalprice}</p>
+            <p id='product_${Basket[i].id}'>Quantity : ${Basket[i].quantity}</p>
+            <p>
+                <button onclick='remove_one(${Basket[i].id})'>Remove One</button>
+                <button onclick='add_one_more(${Basket[i].id})'>Add One</button>
+                <button onclick='permannent_remove(${Basket[i].id})'>Remove Product</button></p>
+            <br>
+            <hr>
+        `;
+        container.appendChild(basket_product);
+      }
+
+      function add_one_more(product_id) {
+        let product_quantity = document.getElementById(`product_${product_id}`);
+        let product_price_id = document.getElementById(
+          `product_price_${product_id}`
+        );
+        let product_find = Basket.find((target) => target.id == product_id);
+        let product_index = Basket.findIndex(
+          (target) => target.id == product_id
+        );
+
+        if (!(product_index == -1)) {
+          let selected_product = Basket[product_index];
+          let quantity_increase = {
+            ...selected_product,
+            quantity: selected_product.quantity + 1,
+            price: selected_product.price,
+            totalprice:
+              selected_product.price * (selected_product.quantity + 1),
+          };
+
+          Basket.splice(product_index, 1, quantity_increase);
+          localStorage.setItem("cart_products", JSON.stringify(Basket));
+        }
+        product_quantity.innerHTML = `Quantity : ${product_find.quantity + 1}`;
+        product_price_id.innerHTML = `Price : $ ${
+          product_find.totalprice + product_find.price
+        }`;
+        all_products_grand_price();
+      }
+
+      function remove_one(product_id) {
+        let product_quantity = document.getElementById(`product_${product_id}`);
+        let product_price_id = document.getElementById(
+          `product_price_${product_id}`
+        );
+        let product_find = Basket.find((target) => target.id == product_id);
+        let product_index = Basket.findIndex(
+          (target) => target.id == product_id
+        );
+
+        if (product_find.quantity > 1) {
+          let selected_product = Basket[product_index];
+          let quantity_increase = {
+            ...selected_product,
+            quantity: selected_product.quantity - 1,
+            totalprice:
+              selected_product.price * (selected_product.quantity - 1),
+          };
+          console.log(product_find.price);
+          Basket.splice(product_index, 1, quantity_increase);
+          localStorage.setItem("cart_products", JSON.stringify(Basket));
+          product_quantity.innerHTML = `Quantity : ${
+            product_find.quantity - 1
+          }`;
+          product_price_id.innerHTML = `Price : $ ${
+            product_find.totalprice - product_find.price
+          }`;
+          all_products_grand_price();
+        } else if (product_find.quantity == 0) {
+          Basket.splice(product_index, 1);
+          localStorage.setItem("cart_products", JSON.stringify(Basket));
+          location.reload();
+        } else {
+          Basket.splice(product_index, 1);
+          localStorage.setItem("cart_products", JSON.stringify(Basket));
+          location.reload();
+        }
+      }
+
+      function permannent_remove(product_id) {
+        let product_index = Basket.findIndex( (target) => target.id == product_id );
+        Basket.splice(product_index, 1);
+        localStorage.setItem("cart_products", JSON.stringify(Basket));
+        location.reload();
+        all_products_grand_price();
+      }
+
+    </script>
+  </body>
+</html>

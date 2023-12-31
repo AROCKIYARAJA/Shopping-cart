@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flipcart - shopping website</title>
+    <style>
+      * {
+        margin: 0px;
+        padding: 0px;
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue",
+          sans-serif;
+        text-decoration: none;
+        outline: none;
+      }
+      #container {
+        max-width: 1400px;
+        display: flex;
+        align-items: center;
+        justify-content: left;
+        padding: 30px;
+        gap: 25px;
+        flex-wrap: wrap;
+        margin: 0px auto;
+      }
+      .product {
+        width: 200px;
+        height: 280px;
+        border: 1px solid rgba(0, 0, 0, 0.496);
+        padding: 15px;
+        border-radius: 10px;
+        position: relative;
+        transition: 0.6s;
+      }
+      button {
+        border: none;
+        width: 90%;
+        padding: 6px 10px;
+        margin: 15px 0px 0px 0px;
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 10px;
+      }
+      .remove_product {
+        background: linear-gradient(to bottom, #ff0c0c, rgb(205, 0, 0));
+        color: white;
+        border-radius: 5px;
+      }
+      .Add_product {
+        background: rgb(31, 204, 0);
+        color: white;
+        border-radius: 5px;
+      }
+      .great {
+        background: rgb(31, 204, 0);
+        color: white;
+        padding: 0px 5px 2px 5px;
+        border-radius: 5px;
+      }
+      .good {
+        background: rgb(255, 204, 0);
+        padding: 0px 5px 2px 5px;
+        color: white;
+        border-radius: 5px;
+      }
+      .bad {
+        background: rgb(255, 0, 0);
+        padding: 0px 5px 2px 5px;
+        color: white;
+        border-radius: 5px;
+      }
+      .product_title {
+        text-align: center;
+      }
+      .image-content {
+        text-align: center;
+        margin-top: 15px;
+      }
+      .product_price {
+        position: absolute;
+        bottom: 50px;
+        left: 0px;
+        width: 100%;
+        text-align: center;
+        transition: 0.6s;
+      }
+      .product:hover .product_price {
+        transition: 0.3s;
+        font-weight: 600;
+      }
+      .product:hover .product_title {
+        text-decoration: underline;
+        font-weight: 600;
+      }
+      .product:hover {
+        box-shadow: 0px 0px 20px 10px rgba(0, 0, 0, 0.116);
+        transition: 0.3s;
+      }
+      nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 30px;
+        background: black;
+        color: white;
+      }
+      nav span {
+        font-style: italic;
+        font-size: 1.7rem;
+        font-weight: 700;
+      }
+      nav span i {
+        color: rgb(255, 203, 71);
+      }
+      nav a {
+        color: black;
+        background: white;
+        padding: 0px 10px 3px 10px;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <span>Flip<i>cart</i></span>
+      <a href="./Flipcart_cart.html">Cart <span id="product-count"></span></a>
+    </nav>
+    <div id="container"></div>
+    <script>
+      let all_product = [];
+      let container = document.getElementById("container");
+      async function product_fetching(url) {
+        try {
+          let url_status = await fetch(url);
+          let url_data = await url_status.json();
+          all_product = url_data;
+          localStorage.setItem(
+            "Flipcart_Products",
+            JSON.stringify(all_product)
+          );
+
+          for (i = 0; i < all_product.length; i++) {
+            let three_word_title = all_product[i].title
+              .split(" ")
+              .splice(0, 3)
+              .join(" ");
+            let product = document.createElement("div");
+            product.classList.add("product");
+            product.innerHTML = `
+                <p class='product_title'>${three_word_title}</p>
+                <p class='image-content'><img src='${all_product[i].image}' width='125px' height='125px'></p>
+                <p class='product_price'><span>Price : $ ${all_product[i].price}</span></p>
+                <button id='btn_${all_product[i].id}' class='Add_product' onclick='take_to_cart(${all_product[i].id})'>Add to Cart</button>
+            `;
+            container.appendChild(product);
+          }
+        } catch (error) {
+          alert("Oops! Something is Wrong.");
+        }
+      }
+      product_fetching("https://fakestoreapi.com/products");
+
+      let Basket_Products = [];
+      function take_to_cart(product_id) {
+        let product_find = JSON.parse(
+          localStorage.getItem("Flipcart_Products")
+        ).find((target) => target.id == product_id);
+        let product_find_index = Basket_Products.findIndex(
+          (target) => target.id == product_id
+        );
+        let Submit_btn = document.getElementById(`btn_${product_id}`);
+
+        if (product_find_index == -1) {
+          Basket_Products.unshift({
+            id: product_find.id,
+            title: product_find.title,
+            image: product_find.image,
+            price: product_find.price,
+            description: product_find.description,
+            category: product_find.category,
+            rating: product_find.rating,
+            quantity: 1,
+            quantity_price: product_find.price,
+          });
+          localStorage.setItem(
+            "Flipcart_Basket_product",
+            JSON.stringify(Basket_Products)
+          );
+          Submit_btn.innerHTML = "Remove from Cart";
+          Submit_btn.classList.add("remove_product");
+          Submit_btn.classList.remove("Add_product");
+          cart_updation();
+        } else {
+          let remove_product = Basket_Products[product_find_index];
+          Basket_Products.splice(product_find_index, 1);
+          localStorage.setItem(
+            "Flipcart_Basket_product",
+            JSON.stringify(Basket_Products)
+          );
+          Submit_btn.innerHTML = "Add to Cart";
+          Submit_btn.classList.add("Add_product");
+          cart_updation();
+        }
+      }
+
+      function cart_updation() {
+        let product_count = document.getElementById("product-count");
+        product_count.innerHTML = JSON.parse(
+          localStorage.getItem("Flipcart_Basket_product")
+        ).length;
+      }
+      cart_updation();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Amason</title>
+    <style>
+      .add-to-cart-active {
+        background: #00b82b;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        outline: none;
+        border: none;
+      }
+      .add-to-cart-deactive {
+        background: #dc0000;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        outline: none;
+        border: none;
+      }
+      .product-box{
+        width: 200px;
+        height: 250px;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 0, 0, 0.308);
+      }
+    </style>
+  </head>
+  <body>
+    <a href="./cart page.html" target="_blank">Go to Cart</a>
+    <div class="container" id="container"></div>
+    <script>
+      const container = document.getElementById("container");
+      let all_products = [];
+      async function product_fetched(url) {
+        try {
+          let url_response = await fetch(url);
+          let url_data = await url_response.json();
+          all_products = url_data.products;
+          let entire = localStorage.setItem("All_Products",JSON.stringify(all_products));
+          for (i = 0; i < all_products.length; i++) {
+            product_box = document.createElement("div");
+            product_box.classList.add("product-box");
+            product_box.innerHTML = `
+                <div>
+                    <p>${all_products[i].title} </p> 
+                    <p style='text-center: center'><img src='${all_products[i].images[1]}' width='200px' height='180px'></p> 
+                    <p>$ ${all_products[i].price}</p> 
+                    <button id='add_remove${all_products[i].id}' class='add-to-cart-active' onclick='add_to_cart(${all_products[i].id})'>Add to cart</button>
+                    <br>
+                </div>
+            `;
+            container.appendChild(product_box);
+          }
+        } catch (error) {
+          alert("Oops! Something is Wrong");
+        }
+      }
+      product_fetched("https://dummyjson.com/products");
+
+      let cart_storage = [];
+      function add_to_cart(product_id) {
+        let present_or_not = JSON.parse( localStorage.getItem("All_Products") ).find((target) => target.id == product_id);
+        let product_index = cart_storage.findIndex( (target) => target.id == product_id );
+        let add_and_remove_btn = document.getElementById( `add_remove${product_id}` );
+
+        if (product_index == -1) {
+          cart_storage.push({
+            id: present_or_not.id,
+            title: present_or_not.title,
+            quantity: 1,
+            price: present_or_not.price,
+            image: present_or_not.image,
+            totalprice: present_or_not.price,
+          });
+          localStorage.setItem("cart_products", JSON.stringify(cart_storage));
+          add_and_remove_btn.innerHTML = "Remove from cart";
+          add_and_remove_btn.classList.remove("add-to-cart-active");
+          add_and_remove_btn.classList.add("add-to-cart-deactive");
+        } else {
+          cart_storage.splice(product_index, 1);
+          localStorage.setItem("cart_products", JSON.stringify(cart_storage));
+          add_and_remove_btn.innerHTML = "Add to cart";
+          add_and_remove_btn.classList.add("add-to-cart-active");
+          add_and_remove_btn.classList.remove("add-to-cart-deactive");
+        }
+      }
+    </script>
+  </body>
+</html>
